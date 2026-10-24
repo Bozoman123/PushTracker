@@ -213,10 +213,7 @@ footer{display:flex;gap:8px;margin-top:26px}
     $("countwrap").classList.toggle("met", t >= state.goal);
     $("fill").style.width = Math.min(100, state.goal ? (t/state.goal*100) : 0) + "%";
 
-    var sets = state.log[tk] || [];
-    $("sets").textContent = sets.length
-      ? sets.length + (sets.length === 1 ? " set: " : " sets: ") + sets.join(", ")
-      : "Nothing logged yet today.";
+    renderSets();
 
     // chart
     var vals = [], keys = [];
@@ -250,6 +247,17 @@ footer{display:flex;gap:8px;margin-top:26px}
     showReadout();
   }
 
+  function pending(){ return Math.max(0, Math.round(Number($("custom").value)) || 0); }
+
+  function renderSets(){
+    var sets = state.log[todayKey()] || [], p = pending();
+    var txt = sets.length
+      ? sets.length + (sets.length === 1 ? " set: " : " sets: ") + sets.join(", ")
+      : "Nothing logged yet today.";
+    if (p) txt += " · Current set: " + p + " (press Log)";
+    $("sets").textContent = txt;
+  }
+
   function showReadout(){
     if (selected){
       var d = new Date(selected + "T00:00:00");
@@ -272,14 +280,17 @@ footer{display:flex;gap:8px;margin-top:26px}
   }
 
   document.querySelectorAll(".pad button").forEach(function(b){
-    b.addEventListener("click", function(){ add(b.dataset.n); });
+    // quick buttons build up the current set; Log commits it
+    b.addEventListener("click", function(){ $("custom").value = pending() + Number(b.dataset.n); renderSets(); });
   });
   $("addbtn").addEventListener("click", function(){
-    var v = $("custom").value; add(v); $("custom").value = "";
+    var v = $("custom").value; $("custom").value = ""; add(v);
   });
+  $("custom").addEventListener("input", renderSets);
   $("custom").addEventListener("keydown", function(e){ if (e.key === "Enter") $("addbtn").click(); });
 
   $("undobtn").addEventListener("click", function(){
+    if (pending()){ $("custom").value = ""; renderSets(); return; }   // discard the unlogged set first
     var k = todayKey();
     if (state.log[k] && state.log[k].length){
       state.log[k].pop();
