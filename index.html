@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Push-up Ledger</title>
+<meta name="theme-color" content="#1B2130">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Push-ups">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2130;
+  --raise:#252D40;
+  --raise-2:#2E3850;
+  --line:#3A4560;
+  --text:#E8EBF2;
+  --muted:#8D97AE;
+  --amber:#EDA54B;
+  --amber-dim:#8A6430;
+  --sans:"Barlow",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"Barlow Condensed","Barlow",ui-sans-serif,system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 32px);
+}
+.wrap{max-width:430px;margin:0 auto}
+
+/* ---- masthead ---- */
+.top{display:flex;align-items:baseline;justify-content:space-between;padding:22px 0 18px}
+.date{font-size:15px;color:var(--muted);letter-spacing:.01em}
+.goalbtn{
+  background:none;border:1px solid var(--line);color:var(--muted);
+  font-family:var(--sans);font-size:13px;padding:5px 11px;border-radius:999px;cursor:pointer;
+}
+.goalbtn:hover{color:var(--text);border-color:var(--muted)}
+
+/* ---- hero count ---- */
+.count{font-family:var(--cond);font-weight:700;line-height:.88;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px}
+#done{font-size:104px;font-variant-numeric:tabular-nums;transition:color .18s ease}
+.of{font-size:34px;color:var(--muted);font-weight:600}
+.count.met #done{color:var(--amber)}
+.bump{animation:bump .26s cubic-bezier(.2,1.5,.4,1)}
+@keyframes bump{0%{transform:translateY(0)}40%{transform:translateY(-7px)}100%{transform:translateY(0)}}
+
+.rule{height:3px;background:var(--raise-2);border-radius:2px;margin:16px 0 6px;overflow:hidden}
+.rule i{display:block;height:100%;width:0;background:var(--amber);border-radius:2px;transition:width .3s ease}
+.sets{font-size:13px;color:var(--muted);min-height:20px;font-variant-numeric:tabular-nums}
+
+/* ---- entry ---- */
+.pad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0 10px}
+.pad button{
+  font-family:var(--cond);font-weight:600;font-size:26px;
+  background:var(--raise);color:var(--text);border:1px solid var(--line);
+  border-radius:12px;padding:16px 0;cursor:pointer;transition:background .14s ease,transform .08s ease;
+}
+.pad button:active{transform:scale(.95);background:var(--raise-2)}
+.row{display:flex;gap:8px}
+.row input{
+  flex:1;min-width:0;background:var(--raise);border:1px solid var(--line);color:var(--text);
+  font-family:var(--sans);font-size:16px;padding:13px 14px;border-radius:12px;
+}
+.row input::placeholder{color:var(--muted)}
+.row input:focus,.pad button:focus-visible,.goalbtn:focus-visible,.seg button:focus-visible,.minor:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.row .add{background:var(--amber);color:#1B2130;border:none;font-weight:600;padding:13px 22px;border-radius:12px;font-size:16px;cursor:pointer;font-family:var(--sans)}
+.row .undo{background:none;border:1px solid var(--line);color:var(--muted);padding:13px 16px;border-radius:12px;cursor:pointer;font-family:var(--sans);font-size:15px}
+
+/* ---- horizon ---- */
+.band{margin:30px 0 0;border-top:1px solid var(--line);padding-top:20px}
+.bandhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.seg{display:flex;gap:4px;background:var(--raise);border-radius:999px;padding:3px}
+.seg button{
+  background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:13px;
+  padding:5px 13px;border-radius:999px;cursor:pointer;
+}
+.seg button[aria-selected="true"]{background:var(--raise-2);color:var(--text)}
+.readout{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.chart{position:relative;height:132px;display:flex;align-items:flex-end;gap:2px}
+.chart .goalline{position:absolute;left:0;right:0;border-top:1px dashed var(--amber-dim);pointer-events:none}
+.bar{flex:1;min-width:0;background:var(--raise-2);border-radius:2px 2px 0 0;min-height:2px;cursor:pointer;transition:background .14s ease}
+.bar.hit{background:var(--amber)}
+.bar.today{box-shadow:inset 0 0 0 1px var(--text)}
+.bar.sel{background:var(--text)}
+
+/* ---- stats ---- */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:26px}
+.stat{background:var(--ink);padding:14px 15px}
+.stat b{display:block;font-family:var(--cond);font-weight:700;font-size:32px;line-height:1.05;font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--muted)}
+
+footer{display:flex;gap:8px;margin-top:26px}
+.minor{flex:1;background:none;border:1px solid var(--line);color:var(--muted);font-family:var(--sans);font-size:13.5px;padding:11px;border-radius:10px;cursor:pointer}
+.minor:hover{color:var(--text)}
+.note{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.5}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="date" id="today"></div>
+    <button class="goalbtn" id="setgoal">Goal: <span id="goaltxt">60</span></button>
+  </div>
+
+  <div class="count" id="countwrap">
+    <span id="done">0</span><span class="of">/ <span id="goalbig">60</span></span>
+  </div>
+  <div class="rule"><i id="fill"></i></div>
+  <div class="sets" id="sets">Nothing logged yet today.</div>
+
+  <div class="pad">
+    <button data-n="1">+1</button>
+    <button data-n="5">+5</button>
+    <button data-n="10">+10</button>
+    <button data-n="20">+20</button>
+  </div>
+  <div class="row">
+    <input id="custom" type="number" inputmode="numeric" min="1" placeholder="Reps in that set">
+    <button class="add" id="addbtn">Log</button>
+    <button class="undo" id="undobtn" title="Undo last set">Undo</button>
+  </div>
+
+  <div class="band">
+    <div class="bandhead">
+      <div class="seg" role="tablist">
+        <button role="tab" data-d="7" aria-selected="false">7 days</button>
+        <button role="tab" data-d="30" aria-selected="true">30 days</button>
+        <button role="tab" data-d="90" aria-selected="false">90 days</button>
+      </div>
+      <div class="readout" id="readout"></div>
+    </div>
+    <div class="chart" id="chart"><div class="goalline" id="goalline"></div></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="s-streak">0</b><span>Day streak at goal</span></div>
+    <div class="stat"><b id="s-avg">0</b><span>Daily average, 7 days</span></div>
+    <div class="stat"><b id="s-period">0</b><span id="s-period-l">Total, 30 days</span></div>
+    <div class="stat"><b id="s-best">0</b><span>Best single day</span></div>
+  </div>
+
+  <footer>
+    <button class="minor" id="export">Export backup</button>
+    <button class="minor" id="import">Import backup</button>
+  </footer>
+  <p class="note">Everything is stored in this browser only. Clearing site data wipes it, so export a backup now and then.</p>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "pushup-ledger-v1";
+  var state = { goal: 60, log: {} };
+  var days = 30, selected = null;
+
+  function todayKey(d){
+    d = d || new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function keyMinus(n){ var d = new Date(); d.setDate(d.getDate()-n); return todayKey(d); }
+  function total(k){ return (state.log[k]||[]).reduce(function(a,b){return a+b;},0); }
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var p = JSON.parse(raw);
+        if (p && typeof p === "object") {
+          state.goal = Number(p.goal) > 0 ? Number(p.goal) : 60;
+          state.log = (p.log && typeof p.log === "object") ? p.log : {};
+        }
+      }
+    } catch(e){ /* private mode or blocked storage: run in memory */ }
+  }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  function streak(){
+    var n = 0, i = 0;
+    if (total(todayKey()) < state.goal) i = 1;   // today still in progress, don't break it
+    for (; i < 400; i++){
+      if (total(keyMinus(i)) >= state.goal) n++; else break;
+    }
+    return n;
+  }
+
+  function render(){
+    var tk = todayKey(), t = total(tk);
+    $("today").textContent = new Date().toLocaleDateString("en-AU", {weekday:"long", day:"numeric", month:"long"});
+    $("done").textContent = t;
+    $("goalbig").textContent = state.goal;
+    $("goaltxt").textContent = state.goal;
+    $("countwrap").classList.toggle("met", t >= state.goal);
+    $("fill").style.width = Math.min(100, state.goal ? (t/state.goal*100) : 0) + "%";
+
+    var sets = state.log[tk] || [];
+    $("sets").textContent = sets.length
+      ? sets.length + (sets.length === 1 ? " set: " : " sets: ") + sets.join(", ")
+      : "Nothing logged yet today.";
+
+    // chart
+    var vals = [], keys = [];
+    for (var i = days - 1; i >= 0; i--){ var k = keyMinus(i); keys.push(k); vals.push(total(k)); }
+    var peak = Math.max.apply(null, vals.concat([state.goal]));
+    var scale = peak * 1.15 || 1;
+
+    var chart = $("chart");
+    Array.prototype.slice.call(chart.querySelectorAll(".bar")).forEach(function(b){ b.remove(); });
+    var frag = document.createDocumentFragment();
+    keys.forEach(function(k, idx){
+      var v = vals[idx], b = document.createElement("div");
+      b.className = "bar" + (v >= state.goal && v > 0 ? " hit" : "") + (k === tk ? " today" : "") + (k === selected ? " sel" : "");
+      b.style.height = Math.max(2, v / scale * 132) + "px";
+      b.dataset.k = k;
+      frag.appendChild(b);
+    });
+    chart.appendChild(frag);
+    $("goalline").style.bottom = (state.goal / scale * 132) + "px";
+
+    var sum = vals.reduce(function(a,b){return a+b;},0);
+    var last7 = 0; for (var j = 0; j < 7; j++) last7 += total(keyMinus(j));
+    var all = Object.keys(state.log).map(total);
+
+    $("s-streak").textContent = streak();
+    $("s-avg").textContent = Math.round(last7/7);
+    $("s-period").textContent = sum.toLocaleString("en-AU");
+    $("s-period-l").textContent = "Total, " + days + " days";
+    $("s-best").textContent = all.length ? Math.max.apply(null, all) : 0;
+
+    showReadout();
+  }
+
+  function showReadout(){
+    if (selected){
+      var d = new Date(selected + "T00:00:00");
+      $("readout").textContent = d.toLocaleDateString("en-AU",{day:"numeric",month:"short"}) + " — " + total(selected) + " reps";
+    } else {
+      var n = 0; for (var i = 0; i < days; i++) if (total(keyMinus(i)) >= state.goal) n++;
+      $("readout").textContent = n + " of " + days + " days at goal";
+    }
+  }
+
+  function add(n){
+    n = Math.round(Number(n));
+    if (!n || n < 1 || n > 5000) return;
+    var k = todayKey();
+    if (!state.log[k]) state.log[k] = [];
+    state.log[k].push(n);
+    save(); render();
+    var el = $("done");
+    el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+  }
+
+  document.querySelectorAll(".pad button").forEach(function(b){
+    b.addEventListener("click", function(){ add(b.dataset.n); });
+  });
+  $("addbtn").addEventListener("click", function(){
+    var v = $("custom").value; add(v); $("custom").value = "";
+  });
+  $("custom").addEventListener("keydown", function(e){ if (e.key === "Enter") $("addbtn").click(); });
+
+  $("undobtn").addEventListener("click", function(){
+    var k = todayKey();
+    if (state.log[k] && state.log[k].length){
+      state.log[k].pop();
+      if (!state.log[k].length) delete state.log[k];
+      save(); render();
+    }
+  });
+
+  $("setgoal").addEventListener("click", function(){
+    var v = prompt("Daily push-up goal", state.goal);
+    if (v === null) return;
+    v = Math.round(Number(v));
+    if (v > 0 && v <= 5000){ state.goal = v; save(); render(); }
+  });
+
+  document.querySelectorAll(".seg button").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".seg button").forEach(function(x){ x.setAttribute("aria-selected","false"); });
+      b.setAttribute("aria-selected","true");
+      days = Number(b.dataset.d); selected = null; render();
+    });
+  });
+
+  $("chart").addEventListener("click", function(e){
+    var b = e.target.closest(".bar"); if (!b) return;
+    selected = (selected === b.dataset.k) ? null : b.dataset.k;
+    render();
+  });
+
+  $("export").addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pushups-" + todayKey() + ".json";
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  $("import").addEventListener("click", function(){
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "application/json,.json";
+    inp.addEventListener("change", function(){
+      var f = inp.files && inp.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(){
+        try {
+          var p = JSON.parse(r.result);
+          if (!p || typeof p !== "object" || typeof p.log !== "object") throw 0;
+          if (!confirm("Replace current data with this backup?")) return;
+          state.goal = Number(p.goal) > 0 ? Number(p.goal) : state.goal;
+          state.log = p.log;
+          save(); render();
+        } catch(err){ alert("That file isn't a valid backup."); }
+      };
+      r.readAsText(f);
+    });
+    inp.click();
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
