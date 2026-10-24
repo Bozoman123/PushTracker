@@ -153,6 +153,7 @@ footer{display:flex;gap:8px;margin-top:26px}
   </div>
 
   <footer>
+    <button class="minor" id="resetday">Reset today</button>
     <button class="minor" id="export">Export backup</button>
     <button class="minor" id="import">Import backup</button>
   </footer>
@@ -283,6 +284,14 @@ footer{display:flex;gap:8px;margin-top:26px}
       if (!state.log[k].length) delete state.log[k];
       save(); render();
     }
+  });
+
+  $("resetday").addEventListener("click", function(){
+    var k = todayKey();
+    if (!state.log[k] || !state.log[k].length) { alert("Nothing logged today yet."); return; }
+    if (!confirm("Reset today's count (" + total(k) + " reps)? This can't be undone.")) return;
+    delete state.log[k];
+    save(); render();
   });
 
   $("setgoal").addEventListener("click", function(){
